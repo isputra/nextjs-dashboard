@@ -1,66 +1,40 @@
-"use client";
+import Pagination from "@/app/ui/invoices/pagination";
+import Search from "@/app/ui/search";
+import Table from "@/app/ui/invoices/table";
+import { CreateInvoice } from "@/app/ui/invoices/buttons";
+import { lusitana } from "@/app/ui/fonts";
+import { InvoicesTableSkeleton } from "@/app/ui/skeletons";
+import { Suspense } from "react";
+import { fetchInvoicesPages } from "@/app/lib/data";
 
-import React, { useState } from "react";
-
-const Page: React.FC = () => {
-  const [name, setName] = useState("");
-  const [age, setAge] = useState("");
-  const [sex, setSex] = useState("");
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    console.log({ name, age, sex });
+export default async function Page({
+  searchParams,
+}: {
+  searchParams?: {
+    query?: string;
+    page?: string;
   };
+}) {
+  const query = searchParams?.query || "";
+  const currentPage = Number(searchParams?.page) || 1;
+
+  const totalPages = await fetchInvoicesPages(query);
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-md mx-auto p-4 bg-white shadow-md rounded"
-    >
-      <div className="mb-4">
-        <label htmlFor="name" className="block text-gray-700 font-bold mb-2">
-          Name:
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border rounded"
-        />
+    <div className="w-full">
+      <div className="flex w-full items-center justify-between">
+        <h1 className={`${lusitana.className} text-2xl`}>Invoices</h1>
       </div>
-      <div className="mb-4">
-        <label htmlFor="age" className="block text-gray-700 font-bold mb-2">
-          Age:
-        </label>
-        <input
-          type="number"
-          id="age"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-          className="w-full px-3 py-2 border rounded"
-        />
+      <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
+        <Search placeholder="Search invoices..." />
+        <CreateInvoice />
       </div>
-      <div className="mb-4">
-        <label htmlFor="sex" className="block text-gray-700 font-bold mb-2">
-          Sex:
-        </label>
-        <input
-          type="text"
-          id="sex"
-          value={sex}
-          onChange={(e) => setSex(e.target.value)}
-          className="w-full px-3 py-2 border rounded"
-        />
+      <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
+        <Table query={query} currentPage={currentPage} />
+      </Suspense>
+      <div className="mt-5 flex w-full justify-center">
+        <Pagination totalPages={totalPages} />
       </div>
-      <button
-        type="submit"
-        className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-700"
-      >
-        Submit
-      </button>
-    </form>
+    </div>
   );
-};
-
-export default Page;
+}
